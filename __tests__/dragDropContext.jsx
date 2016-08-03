@@ -16,6 +16,12 @@ function getRenderedContainer() {
 
 describe('The DragDropContext composition constructor', function () {
   it('provides the "connectDragDropContext" function', function () {
+    spyOn(DragDropStore, 'getState').and.returnValue({
+      dragSource: null,
+      start: { x: 0, y: 0 },
+      end: { x: 0, y: 0 }
+    });
+
     const renderedContainer = getRenderedContainer();
 
     expect(renderedContainer.props.connectDragDropContext).toEqual(jasmine.any(Function));

@@ -1,9 +1,9 @@
+jest.unmock('../../lib/index');
 jest.unmock('../../lib/component/dragDropContext');
-jest.unmock('../../lib/store/dragDropStore');
 
 import React from 'react';
 
-const DragDropContext = require('../../lib/component/dragDropContext').default;
+const { DragDropContext } = require('../../lib/index');
 
 class ChildComponent extends React.Component {
   render() {

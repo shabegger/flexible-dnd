@@ -1,8 +1,9 @@
+jest.unmock('../../lib/index');
 jest.unmock('../../lib/component/dragSource');
 
 import React from 'react';
 
-const DragSource = require('../../lib/component/dragSource').default;
+const { DragSource } = require('../../lib/index');
 
 export class Draggable extends React.Component {
   render() {
