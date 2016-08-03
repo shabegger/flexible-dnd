@@ -1,0 +1,66 @@
+{
+  "name": "flexible-dnd",
+  "version": "0.0.0",
+  "description": "A lightweight React drag-and-drop library",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "jest  --verbose",
+    "test-debug": "node-debug ~/npm/lib/node_modules/jest-cli/bin/jest.js -i"
+  },
+  "jest": {
+    "scriptPreprocessor": "<rootDir>/node_modules/babel-jest",
+    "unmockedModulePathPatterns": [
+      "<rootDir>/node_modules/react/",
+      "<rootDir>/node_modules/react-addons-test-utils/",
+      "<rootDir>/node_modules/react-dom/",
+      "<rootDir>/node_modules/react-stub-context/",
+      "<rootDir>/node_modules/redux"
+    ],
+    "testPathIgnorePatterns": [
+      "/fixtures/"
+    ],
+    "testFileExtensions": [
+      "js",
+      "jsx"
+    ],
+    "moduleFileExtensions": [
+      "js",
+      "jsx",
+      "json"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shabegger/flexible-dnd.git"
+  },
+  "keywords": [
+    "drag-and-drop",
+    "dnd",
+    "react"
+  ],
+  "author": "Stephen Habegger",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/shabegger/flexible-dnd/issues"
+  },
+  "homepage": "https://github.com/shabegger/flexible-dnd#readme",
+  "dependencies": {
+    "react": "^15.2.1",
+    "redux": "^3.5.2"
+  },
+  "devDependencies": {
+    "babel": "^6.5.2",
+    "babel-jest": "^13.0.0",
+    "babel-plugin-transform-object-assign": "^6.8.0",
+    "babel-preset-es2015": "^6.9.0",
+    "babel-preset-react": "^6.11.1",
+    "babelify": "^7.3.0",
+    "browserify": "^13.0.1",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^6.1.2",
+    "react-addons-test-utils": "^15.2.1",
+    "react-dom": "^15.2.1",
+    "react-stub-context": "^0.7.0",
+    "vinyl-source-stream": "^1.1.0"
+  }
+}

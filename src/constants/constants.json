@@ -1,0 +1,10 @@
+{
+  "ACTIONS": {
+    "DRAG_DROP": {
+      "DRAG_CANCEL": "DRAG_CANCEL",
+      "DRAG_END": "DRAG_END",
+      "DRAG_MOVE": "DRAG_MOVE",
+      "DRAG_START": "DRAG_START"
+    }
+  }
+}
