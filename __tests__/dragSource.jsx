@@ -3,185 +3,156 @@ jest.unmock('./fixtures/draggable');
 import React from 'react';
 import TestUtils from 'react-addons-test-utils';
 import stubContext from 'react-stub-context';
+import { createStore } from 'redux';
 
 import { Draggable, DragSourceDraggable } from './fixtures/draggable';
 
-const DragDropStore = require('../lib/store/dragDropStore').default;
 const Constants = require('../lib/constants/constants.json');
 
-function getRenderedDraggable(context, fn) {
-  var Root = context ? stubContext(DragSourceDraggable, context) : DragSourceDraggable,
-      root = TestUtils.renderIntoDocument(<Root />);
+var root, sourceDraggable, draggable, store, dispatch;
 
-  if (fn) {
-    fn(TestUtils.findRenderedComponentWithType(root, DragSourceDraggable));
-  }
+describe('The DragSource composable', function () {
+  beforeEach(function () {
+    var Root;
 
-  return TestUtils.findRenderedComponentWithType(root, Draggable);
-}
+    store = createStore(() => {});
+    dispatch = () => {
+      store.dispatch({ type: 'TEST' });
+    };
 
-describe('The DragSource composition constructor', function () {
+    Root = stubContext(DragSourceDraggable, { __dragDropStore: store });
+
+    root = TestUtils.renderIntoDocument(<Root />);
+    sourceDraggable = TestUtils.findRenderedComponentWithType(root, DragSourceDraggable);
+    draggable = TestUtils.findRenderedComponentWithType(sourceDraggable, Draggable);
+  });
+
   it('provides the "connectDragSource" function', function () {
-    const renderedDraggable = getRenderedDraggable({
-      __dragDropContext: {}
-    });
-
-    expect(renderedDraggable.props.connectDragSource).toEqual(jasmine.any(Function));
+    expect(draggable.props.connectDragSource).toEqual(jasmine.any(Function));
   });
 
   it('provides an (initially false) "isDragging" property', function () {
-    const renderedDraggable = getRenderedDraggable({
-      __dragDropContext: {}
-    });
-
-    expect(renderedDraggable.props.isDragging).toBe(false);
+    expect(draggable.props.isDragging).toBe(false);
   });
 
-  describe('on mouse down', function () {
-    beforeEach(function () {
-      spyOn(DragDropStore, 'dispatch');
+  it('provides dragging props when it is the current dragSource', function () {
+    spyOn(store, 'getState').and.returnValue({
+      dragSource: sourceDraggable,
+      dragKey: 'dragTest',
+      start: { x: 100, y: 100 },
+      end: { x: 350, y: 250 }
     });
 
-    it('sets dragging props', function () {
-      var context = {
-        __dragDropContext: {}
-      };
+    dispatch();
 
-      const renderedDraggable = getRenderedDraggable(context, function (dragEl) {
-        context.__dragDropContext.dragSource = dragEl;
-      });
+    expect(draggable.props).toEqual(jasmine.objectContaining({
+      isDragging: true,
+      dragKey: 'dragTest',
+      dragDeltaX: 250,
+      dragDeltaY: 150
+    }));
+  });
 
-      const renderedDiv = TestUtils.findRenderedDOMComponentWithTag(renderedDraggable, 'div');
-
-      TestUtils.Simulate.mouseDown(renderedDiv, {});
-
-      expect(renderedDraggable.props.isDragging).toBe(true);
-      expect(renderedDraggable.props.dragKey).toBe('dragTest');
+  it('does not provide dragging props when it is not the current dragSource', function () {
+    spyOn(store, 'getState').and.returnValue({
+      dragSource: <div />,
+      dragKey: 'dragTest',
+      start: { x: 100, y: 100 },
+      end: { x: 350, y: 250 }
     });
 
-    it('sets drag deltas based on context', function () {
-      var context = {
-        __dragDropContext: {
-          dragDelta: {
-            x: 50,
-            y: -40
-          }
-        }
-      };
+    dispatch();
 
-      const renderedDraggable = getRenderedDraggable(context, function (dragEl) {
-        context.__dragDropContext.dragSource = dragEl;
-      });
+    expect(draggable.props.isDragging).toBe(false);
+    expect(draggable.props.dragKey).toBeUndefined();
+    expect(draggable.props.dragDeltaX).toBeUndefined();
+    expect(draggable.props.dragDeltaY).toBeUndefined();
+  });
 
-      const renderedDiv = TestUtils.findRenderedDOMComponentWithTag(renderedDraggable, 'div');
-
-      TestUtils.Simulate.mouseDown(renderedDiv, {});
-
-      expect(renderedDraggable.props.dragDeltaX).toBe(50);
-      expect(renderedDraggable.props.dragDeltaY).toBe(-40);
+  it('re-renders when it is the current dragSource', function () {
+    spyOn(sourceDraggable, 'render').and.callThrough();
+    spyOn(store, 'getState').and.returnValue({
+      dragSource: sourceDraggable,
+      dragKey: 'dragTest',
+      start: { x: 100, y: 100 },
+      end: { x: 350, y: 250 }
     });
 
-    it('dispatches the DRAG_START action', function () {
-      var context = {
-        __dragDropContext: {}
-      };
+    dispatch();
 
-      var dragSourceDraggable;
+    expect(sourceDraggable.render).toHaveBeenCalled();
+  });
 
-      const renderedDraggable = getRenderedDraggable(context, function (dragEl) {
-        dragSourceDraggable = dragEl;
-      });
+  it('re-renders when it stops being the current dragSource', function () {
+    spyOn(sourceDraggable, 'render').and.callThrough();
+    spyOn(store, 'getState').and.returnValue({
+      dragSource: null,
+      dragKey: null,
+      start: { x: 0, y: 0 },
+      end: { x: 0, y: 0 }
+    });
 
-      const renderedDiv = TestUtils.findRenderedDOMComponentWithTag(renderedDraggable, 'div');
+    sourceDraggable.state.isDragging = true;
+    dispatch();
 
-      TestUtils.Simulate.mouseDown(renderedDiv, {
-        clientX: 300,
-        clientY: 450
-      });
+    expect(sourceDraggable.render).toHaveBeenCalled();
+  });
 
-      expect(DragDropStore.dispatch).toHaveBeenCalledWith({
-        type: Constants.ACTIONS.DRAG_DROP.DRAG_START,
-        source: dragSourceDraggable,
-        x: 300,
-        y: 450
-      });
+  it('does not re-render when it is not the current dragSource', function () {
+    spyOn(sourceDraggable, 'render').and.callThrough();
+    spyOn(store, 'getState').and.returnValue({
+      dragSource: <div />,
+      dragKey: 'dragTest',
+      start: { x: 100, y: 100 },
+      end: { x: 350, y: 250 }
+    });
+
+    dispatch();
+
+    expect(sourceDraggable.render).not.toHaveBeenCalled();
+  });
+
+  it('dispatches the DRAG_START action on mouse down', function () {
+    const div = TestUtils.findRenderedDOMComponentWithTag(draggable, 'div');
+
+    spyOn(store, 'dispatch');
+
+    TestUtils.Simulate.mouseDown(div, {
+      clientX: 300,
+      clientY: 450
+    });
+
+    expect(store.dispatch).toHaveBeenCalledWith({
+      type: Constants.ACTIONS.DRAG_DROP.DRAG_START,
+      source: sourceDraggable,
+      key: 'dragTest',
+      x: 300,
+      y: 450
     });
   });
 
-  describe('on touch start', function () {
-    beforeEach(function () {
-      spyOn(DragDropStore, 'dispatch');
-    });
+  it('dispatches the DRAG_START action on touch start', function () {
+    const div = TestUtils.findRenderedDOMComponentWithTag(draggable, 'div');
 
-    it('sets dragging props', function () {
-      var context = {
-        __dragDropContext: {}
-      };
+    spyOn(store, 'dispatch');
 
-      const renderedDraggable = getRenderedDraggable(context, function (dragEl) {
-        context.__dragDropContext.dragSource = dragEl;
-      });
-
-      const renderedDiv = TestUtils.findRenderedDOMComponentWithTag(renderedDraggable, 'div');
-
-      TestUtils.Simulate.touchStart(renderedDiv, {});
-
-      expect(renderedDraggable.props.isDragging).toBe(true);
-      expect(renderedDraggable.props.dragKey).toBe('dragTest');
-    });
-
-    it('sets drag deltas based on context', function () {
-      var context = {
-        __dragDropContext: {
-          dragDelta: {
-            x: 50,
-            y: -40
-          }
+    TestUtils.Simulate.touchStart(div, {
+      touches: {
+        item: function () {
+          return {
+            clientX: 300,
+            clientY: 450
+          };
         }
-      };
-
-      const renderedDraggable = getRenderedDraggable(context, function (dragEl) {
-        context.__dragDropContext.dragSource = dragEl;
-      });
-
-      const renderedDiv = TestUtils.findRenderedDOMComponentWithTag(renderedDraggable, 'div');
-
-      TestUtils.Simulate.touchStart(renderedDiv, {});
-
-      expect(renderedDraggable.props.dragDeltaX).toBe(50);
-      expect(renderedDraggable.props.dragDeltaY).toBe(-40);
+      }
     });
 
-    it('dispatches the DRAG_START action', function () {
-      var context = {
-        __dragDropContext: {}
-      };
-
-      var dragSourceDraggable;
-
-      const renderedDraggable = getRenderedDraggable(context, function (dragEl) {
-        dragSourceDraggable = dragEl;
-      });
-
-      const renderedDiv = TestUtils.findRenderedDOMComponentWithTag(renderedDraggable, 'div');
-
-      TestUtils.Simulate.mouseDown(renderedDiv, {
-        touches: {
-          item: function () {
-            return {
-              clientX: 300,
-              clientY: 450
-            };
-          }
-        }
-      });
-
-      expect(DragDropStore.dispatch).toHaveBeenCalledWith({
-        type: Constants.ACTIONS.DRAG_DROP.DRAG_START,
-        source: dragSourceDraggable,
-        x: 300,
-        y: 450
-      });
+    expect(store.dispatch).toHaveBeenCalledWith({
+      type: Constants.ACTIONS.DRAG_DROP.DRAG_START,
+      source: sourceDraggable,
+      key: 'dragTest',
+      x: 300,
+      y: 450
     });
   });
 });

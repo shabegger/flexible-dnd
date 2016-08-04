@@ -13,7 +13,7 @@ class ChildComponent extends React.Component {
 
 Object.assign(ChildComponent, {
   contextTypes: {
-    __dragDropContext: React.PropTypes.object.isRequired
+    __dragDropStore: React.PropTypes.object.isRequired
   }
 });
 

@@ -1,6 +1,7 @@
 import React from 'react';
+import { createStore } from 'redux';
 
-import DragDropStore from '../store/dragDropStore';
+import dragDropReducer from '../store/dragDropReducer';
 import Constants from '../constants/constants';
 
 export default function DragDropContext(Component) {
@@ -13,24 +14,12 @@ export default function DragDropContext(Component) {
       this.dragEnd = this.dragEnd.bind(this);
       this.dragMove = this.dragMove.bind(this);
 
-      this.state = DragDropStore.getState();
-      DragDropStore.subscribe(() => {
-        this.setState(DragDropStore.getState());
-      });
+      this.store = createStore(dragDropReducer);
     }
 
     getChildContext() {
-      var start = this.state.start,
-          end = this.state.end;
-
       return {
-        __dragDropContext: {
-          dragSource: this.state.dragSource,
-          dragDelta: {
-            x: end.x - start.x,
-            y: end.y - start.y
-          }
-        }
+        __dragDropStore: this.store
       };
     }
 
@@ -48,26 +37,34 @@ export default function DragDropContext(Component) {
     }
 
     dragCancel(e) {
-      if (this.state.dragSource) {
-        DragDropStore.dispatch({
+      var store = this.store,
+          state = store.getState();
+
+      if (state.dragSource) {
+        store.dispatch({
           type: Constants.ACTIONS.DRAG_DROP.DRAG_CANCEL
         });
       }
     }
 
     dragEnd(e) {
-      if (this.state.dragSource) {
-        DragDropStore.dispatch({
+      var store = this.store,
+          state = store.getState();
+
+      if (state.dragSource) {
+        store.dispatch({
           type: Constants.ACTIONS.DRAG_DROP.DRAG_END
         });
       }
     }
 
     dragMove(e) {
-      var x, y,
+      var store = this.store,
+          state = store.getState(),
+          x, y,
           touch;
 
-      if (this.state.dragSource) {
+      if (state.dragSource) {
         if (e.touches) {
           touch = e.touches.item(0);
           x = touch.clientX;
@@ -77,7 +74,7 @@ export default function DragDropContext(Component) {
           y = e.clientY;
         }
 
-        DragDropStore.dispatch({
+        store.dispatch({
           type: Constants.ACTIONS.DRAG_DROP.DRAG_MOVE,
           x,
           y
@@ -92,7 +89,7 @@ export default function DragDropContext(Component) {
   
   Object.assign(dragDropContext, {
     childContextTypes: {
-      __dragDropContext: React.PropTypes.object.isRequired
+      __dragDropStore: React.PropTypes.object.isRequired
     },
     displayName: `DragDropContext(${Component.displayName || 'Component'})`
   });

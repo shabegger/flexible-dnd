@@ -1,6 +1,5 @@
 import React from 'react';
 
-import DragDropStore from '../store/dragDropStore';
 import Constants from '../constants/constants';
 
 export default function DragSource(Component) {
@@ -8,13 +7,44 @@ export default function DragSource(Component) {
     constructor() {
       super();
 
-      this.state = {
-        dragKey: null
-      };
-
       this.connect = this.connect.bind(this);
       this.dragStart = this.dragStart.bind(this);
-      this.isDragging = this.isDragging.bind(this);
+
+      this.state = {
+        isDragging: false,
+        dragKey: null,
+        dragDeltaX: null,
+        dragDeltaY: null
+      }
+    }
+
+    componentDidMount() {
+      var store = this.context.__dragDropStore;
+
+      this.unsubscribe = store.subscribe(() => {
+        var state = store.getState(),
+            isDragging = (this === state.dragSource);
+
+        if (isDragging) {
+          this.setState({
+            isDragging,
+            dragKey: state.dragKey,
+            dragDeltaX: state.end.x - state.start.x,
+            dragDeltaY: state.end.y - state.start.y
+          });
+        } else if (this.state.isDragging) {
+          this.setState({
+            isDragging,
+            dragKey: null,
+            dragDeltaX: null,
+            dragDeltaY: null
+          });
+        }
+      });
+    }
+
+    componentWillUnmount() {
+      this.unsubscribe();
     }
 
     connect(node) {
@@ -45,24 +75,17 @@ export default function DragSource(Component) {
         y = e.clientY;
       }
 
-      this.setState({
-        dragKey: node.key
-      });
-
-      DragDropStore.dispatch({
+      this.context.__dragDropStore.dispatch({
         type: Constants.ACTIONS.DRAG_DROP.DRAG_START,
         source: this,
+        key: node.key,
         x,
         y
       });
     }
-
-    isDragging() {
-      return this === this.context.__dragDropContext.dragSource;
-    }
     
     render() {
-      var isDragging = this.isDragging(),
+      var { isDragging } = this.state,
           props, dragDelta;
 
       props = {
@@ -71,10 +94,8 @@ export default function DragSource(Component) {
       };
 
       if (isDragging) {
-        dragDelta = this.context.__dragDropContext.dragDelta;
-
-        props.dragDeltaX = dragDelta ? dragDelta.x : 0;
-        props.dragDeltaY = dragDelta ? dragDelta.y : 0;
+        props.dragDeltaX = this.state.dragDeltaX;
+        props.dragDeltaY = this.state.dragDeltaY;
         props.dragKey = this.state.dragKey;
       }
 
@@ -84,7 +105,7 @@ export default function DragSource(Component) {
   
   Object.assign(dragSource, {
     contextTypes: {
-      __dragDropContext: React.PropTypes.object.isRequired
+      __dragDropStore: React.PropTypes.object.isRequired
     },
     displayName: `DragSource(${Component.displayName || 'Component'})`
   });

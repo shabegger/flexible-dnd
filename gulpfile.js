@@ -37,7 +37,7 @@ gulp.task('example', [ 'build-test' ], function () {
     .pipe(gulp.dest('example/lib'));
 });
 
-gulp.task('watch', function() {
+gulp.task('watch', [ 'build-test' ], function() {
   gulp.watch('src/**/*.+(js|jsx|json)', function () {
     gulp.run('build-test');
   });

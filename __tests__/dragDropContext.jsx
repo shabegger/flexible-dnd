@@ -5,109 +5,87 @@ import TestUtils from 'react-addons-test-utils';
 
 import { Child, Container, DragDropContextContainer } from './fixtures/container';
 
-const DragDropStore = require('../lib/store/dragDropStore').default;
+const dragDropReducer = require('../lib/store/dragDropReducer').default;
 const Constants = require('../lib/constants/constants.json');
 
-function getRenderedContainer() {
-  var root = TestUtils.renderIntoDocument(<DragDropContextContainer />);
+var contextContainer, container, child, store;
 
-  return TestUtils.findRenderedComponentWithType(root, Container);
-}
+describe('The DragDropContext composable', function () {
+  beforeEach(function () {
+    contextContainer = TestUtils.renderIntoDocument(<DragDropContextContainer />);
+    container = TestUtils.findRenderedComponentWithType(contextContainer, Container);
+    child = TestUtils.findRenderedComponentWithType(container, Child);
+    store = contextContainer.store;
+  });
 
-describe('The DragDropContext composition constructor', function () {
   it('provides the "connectDragDropContext" function', function () {
-    spyOn(DragDropStore, 'getState').and.returnValue({
-      dragSource: null,
-      start: { x: 0, y: 0 },
-      end: { x: 0, y: 0 }
-    });
-
-    const renderedContainer = getRenderedContainer();
-
-    expect(renderedContainer.props.connectDragDropContext).toEqual(jasmine.any(Function));
+    expect(container.props.connectDragDropContext).toEqual(jasmine.any(Function));
   });
 
   describe('when there is no drag source', function () {
     beforeEach(function () {
-      spyOn(DragDropStore, 'dispatch');
-      spyOn(DragDropStore, 'getState').and.returnValue({
+      spyOn(store, 'dispatch');
+      spyOn(store, 'getState').and.returnValue({
         dragSource: null,
+        dragKey: null,
         start: { x: 0, y: 0 },
         end: { x: 0, y: 0 }
       });
     });
 
     it('sets child context', function () {
-      const renderedContainer = getRenderedContainer();
-      const renderedChild = TestUtils.findRenderedComponentWithType(renderedContainer, Child);
-
-      expect(renderedChild.context).toEqual({
-        __dragDropContext: {
-          dragSource: null,
-          dragDelta: { x: 0, y: 0 }
-        }
+      expect(child.context).toEqual({
+        __dragDropStore: store
       });
     });
 
     it('does not dispatch an action on mouse leave', function () {
-      const renderedContainer = getRenderedContainer();
-      const renderedDiv =
-        TestUtils.findRenderedDOMComponentWithClass(renderedContainer, 'test-container');
+      const div = TestUtils.findRenderedDOMComponentWithClass(container, 'test-container');
 
-      TestUtils.Simulate.mouseLeave(renderedDiv, {});
+      TestUtils.Simulate.mouseLeave(div, {});
 
-      expect(DragDropStore.dispatch).not.toHaveBeenCalled();
+      expect(store.dispatch).not.toHaveBeenCalled();
     });
 
     it('does not dispatch an action on mouse up', function () {
-      const renderedContainer = getRenderedContainer();
-      const renderedDiv =
-        TestUtils.findRenderedDOMComponentWithClass(renderedContainer, 'test-container');
+      const div = TestUtils.findRenderedDOMComponentWithClass(container, 'test-container');
 
-      TestUtils.Simulate.mouseUp(renderedDiv, {});
+      TestUtils.Simulate.mouseUp(div, {});
 
-      expect(DragDropStore.dispatch).not.toHaveBeenCalled();
+      expect(store.dispatch).not.toHaveBeenCalled();
     });
 
     it('does not dispatch an action on mouse move', function () {
-      const renderedContainer = getRenderedContainer();
-      const renderedDiv =
-        TestUtils.findRenderedDOMComponentWithClass(renderedContainer, 'test-container');
+      const div = TestUtils.findRenderedDOMComponentWithClass(container, 'test-container');
 
-      TestUtils.Simulate.mouseMove(renderedDiv, {
+      TestUtils.Simulate.mouseMove(div, {
         clientX: 300,
         clientY: 450
       });
 
-      expect(DragDropStore.dispatch).not.toHaveBeenCalled();
+      expect(store.dispatch).not.toHaveBeenCalled();
     });
 
     it('does not dispatch an action on touch cancel', function () {
-      const renderedContainer = getRenderedContainer();
-      const renderedDiv =
-        TestUtils.findRenderedDOMComponentWithClass(renderedContainer, 'test-container');
+      const div = TestUtils.findRenderedDOMComponentWithClass(container, 'test-container');
 
-      TestUtils.Simulate.touchCancel(renderedDiv, {});
+      TestUtils.Simulate.touchCancel(div, {});
 
-      expect(DragDropStore.dispatch).not.toHaveBeenCalled();
+      expect(store.dispatch).not.toHaveBeenCalled();
     });
 
     it('does not dispatch an action on touch end', function () {
-      const renderedContainer = getRenderedContainer();
-      const renderedDiv =
-        TestUtils.findRenderedDOMComponentWithClass(renderedContainer, 'test-container');
+      const div = TestUtils.findRenderedDOMComponentWithClass(container, 'test-container');
 
-      TestUtils.Simulate.touchEnd(renderedDiv, {});
+      TestUtils.Simulate.touchEnd(div, {});
 
-      expect(DragDropStore.dispatch).not.toHaveBeenCalled();
+      expect(store.dispatch).not.toHaveBeenCalled();
     });
 
     it('does not dispatch an action on touch move', function () {
-      const renderedContainer = getRenderedContainer();
-      const renderedDiv =
-        TestUtils.findRenderedDOMComponentWithClass(renderedContainer, 'test-container');
+      const div = TestUtils.findRenderedDOMComponentWithClass(container, 'test-container');
 
-      TestUtils.Simulate.touchMove(renderedDiv, {
+      TestUtils.Simulate.touchMove(div, {
         touches: {
           item: function () {
             return {
@@ -118,67 +96,56 @@ describe('The DragDropContext composition constructor', function () {
         }
       });
 
-      expect(DragDropStore.dispatch).not.toHaveBeenCalled();
+      expect(store.dispatch).not.toHaveBeenCalled();
     });
   });
 
   describe('when there is a drag source', function () {
     beforeEach(function () {
-      spyOn(DragDropStore, 'dispatch');
-      spyOn(DragDropStore, 'getState').and.returnValue({
+      spyOn(store, 'dispatch');
+      spyOn(store, 'getState').and.returnValue({
         dragSource: <div />,
+        dragKey: 'abc',
         start: { x: 100, y: 100 },
         end: { x: 250, y: 350 }
       });
     });
 
     it('sets child context', function () {
-      const renderedContainer = getRenderedContainer();
-      const renderedChild = TestUtils.findRenderedComponentWithType(renderedContainer, Child);
-
-      expect(renderedChild.context).toEqual({
-        __dragDropContext: {
-          dragSource: <div />,
-          dragDelta: { x: 150, y: 250 }
-        }
+      expect(child.context).toEqual({
+        __dragDropStore: store
       });
     });
 
     it('dispatches the DRAG_CANCEL action on mouse leave', function () {
-      const renderedContainer = getRenderedContainer();
-      const renderedDiv =
-        TestUtils.findRenderedDOMComponentWithClass(renderedContainer, 'test-container');
+      const div = TestUtils.findRenderedDOMComponentWithClass(container, 'test-container');
 
-      TestUtils.Simulate.mouseLeave(renderedDiv, {});
+      TestUtils.Simulate.mouseLeave(div, {});
 
-      expect(DragDropStore.dispatch).toHaveBeenCalledWith({
+      expect(store.dispatch).toHaveBeenCalledWith({
         type: Constants.ACTIONS.DRAG_DROP.DRAG_CANCEL
       });
     });
 
     it('dispatches the DRAG_END action on mouse up', function () {
-      const renderedContainer = getRenderedContainer();
-      const renderedDiv =
-        TestUtils.findRenderedDOMComponentWithClass(renderedContainer, 'test-container');
+      const div = TestUtils.findRenderedDOMComponentWithClass(container, 'test-container');
 
-      TestUtils.Simulate.mouseUp(renderedDiv, {});
+      TestUtils.Simulate.mouseUp(div, {});
 
-      expect(DragDropStore.dispatch).toHaveBeenCalledWith({
+      expect(store.dispatch).toHaveBeenCalledWith({
         type: Constants.ACTIONS.DRAG_DROP.DRAG_END
       });
     });
 
     it('dispatches the DRAG_MOVE action on mouse move', function () {
-      const renderedContainer = getRenderedContainer();
-      const renderedDiv =
-        TestUtils.findRenderedDOMComponentWithClass(renderedContainer, 'test-container');
+      const div = TestUtils.findRenderedDOMComponentWithClass(container, 'test-container');
 
-      TestUtils.Simulate.mouseMove(renderedDiv, {
+      TestUtils.Simulate.mouseMove(div, {
         clientX: 300,
         clientY: 450
       });
 
-      expect(DragDropStore.dispatch).toHaveBeenCalledWith({
+      expect(store.dispatch).toHaveBeenCalledWith({
         type: Constants.ACTIONS.DRAG_DROP.DRAG_MOVE,
         x: 300,
         y: 450
@@ -186,35 +153,29 @@ describe('The DragDropContext composition constructor', function () {
     });
 
     it('dispatches the DRAG_CANCEL action on touch cancel', function () {
-      const renderedContainer = getRenderedContainer();
-      const renderedDiv =
-        TestUtils.findRenderedDOMComponentWithClass(renderedContainer, 'test-container');
+      const div = TestUtils.findRenderedDOMComponentWithClass(container, 'test-container');
 
-      TestUtils.Simulate.touchCancel(renderedDiv, {});
+      TestUtils.Simulate.touchCancel(div, {});
 
-      expect(DragDropStore.dispatch).toHaveBeenCalledWith({
+      expect(store.dispatch).toHaveBeenCalledWith({
         type: Constants.ACTIONS.DRAG_DROP.DRAG_CANCEL
       });
     });
 
     it('dispatches the DRAG_END action on touch end', function () {
-      const renderedContainer = getRenderedContainer();
-      const renderedDiv =
-        TestUtils.findRenderedDOMComponentWithClass(renderedContainer, 'test-container');
+      const div = TestUtils.findRenderedDOMComponentWithClass(container, 'test-container');
 
-      TestUtils.Simulate.touchEnd(renderedDiv, {});
+      TestUtils.Simulate.touchEnd(div, {});
 
-      expect(DragDropStore.dispatch).toHaveBeenCalledWith({
+      expect(store.dispatch).toHaveBeenCalledWith({
         type: Constants.ACTIONS.DRAG_DROP.DRAG_END
       });
     });
 
     it('dispatches the DRAG_MOVE action on touch move', function () {
-      const renderedContainer = getRenderedContainer();
-      const renderedDiv =
-        TestUtils.findRenderedDOMComponentWithClass(renderedContainer, 'test-container');
+      const div = TestUtils.findRenderedDOMComponentWithClass(container, 'test-container');
 
-      TestUtils.Simulate.touchMove(renderedDiv, {
+      TestUtils.Simulate.touchMove(div, {
         touches: {
           item: function () {
             return {
@@ -225,7 +186,7 @@ describe('The DragDropContext composition constructor', function () {
         }
       });
 
-      expect(DragDropStore.dispatch).toHaveBeenCalledWith({
+      expect(store.dispatch).toHaveBeenCalledWith({
         type: Constants.ACTIONS.DRAG_DROP.DRAG_MOVE,
         x: 300,
         y: 450

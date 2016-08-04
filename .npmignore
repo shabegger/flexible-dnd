@@ -1,5 +1,7 @@
 __tests__
-.babelrc
-gulpfile.js
-src
 example
+src
+.babelrc
+.gitignore
+.npmignore
+gulpfile.js

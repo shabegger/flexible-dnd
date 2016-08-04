@@ -10,7 +10,7 @@ These departures are made largely in order to create a lightweight and flexible 
 
 ### Use
 
-flexible-dnd tracks movement and drops in the context of a container component. Begin by applying the `DragDropContext` composition constructor to your container element. The function `connectDragDropContext` will become available to your container via `props`. Apply this function to the element which you want to use to track dragging.
+flexible-dnd tracks movement and drops in the context of a container component. Begin by applying the `DragDropContext` composable to your container element. The function `connectDragDropContext` will become available to your container via `props`. Apply this function to the element which you want to use to track dragging.
 
 ```
 import React from 'react';
@@ -31,7 +31,7 @@ class App extends React.Component {
 App = DragDropContext(App);
 ```
 
-Apply the `DragSource` composition constructor to any components that will render draggable elements. The function `connectDragSource` will be available on `props`, and should be applied to any elements that should be draggable.
+Apply the `DragSource` composable to any components that will render draggable elements. The function `connectDragSource` will be available on `props`, and should be applied to any elements that should be draggable.
 
 You must handle rendering dragged elements yourself. If a `DragSource` currently has a dragged element, `props.isDragging` will be `true`. If the component contains multiple draggable elements, you can apply the `key` property to those elements, and the value corresponding to the dragged element will be passed down as `props.dragKey`. The drag deltas are available via `props.dragDeltaX` and `props.dragDeltaY`.
 
