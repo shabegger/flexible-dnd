@@ -2,7 +2,7 @@ import React from 'react';
 import { createStore } from 'redux';
 
 import dragDropReducer from '../store/dragDropReducer';
-import Constants from '../constants/constants';
+import { dragCancelAction, dragEndAction, dragMoveAction } from '../store/actionCreators';
 
 export default function DragDropContext(Component) {
   class dragDropContext extends React.Component {
@@ -41,9 +41,7 @@ export default function DragDropContext(Component) {
           state = store.getState();
 
       if (state.dragSource) {
-        store.dispatch({
-          type: Constants.ACTIONS.DRAG_DROP.DRAG_CANCEL
-        });
+        store.dispatch(dragCancelAction());
       }
     }
 
@@ -52,9 +50,7 @@ export default function DragDropContext(Component) {
           state = store.getState();
 
       if (state.dragSource) {
-        store.dispatch({
-          type: Constants.ACTIONS.DRAG_DROP.DRAG_END
-        });
+        store.dispatch(dragEndAction());
       }
     }
 
@@ -74,11 +70,7 @@ export default function DragDropContext(Component) {
           y = e.clientY;
         }
 
-        store.dispatch({
-          type: Constants.ACTIONS.DRAG_DROP.DRAG_MOVE,
-          x,
-          y
-        });
+        store.dispatch(dragMoveAction(x, y));
       }
     }
 

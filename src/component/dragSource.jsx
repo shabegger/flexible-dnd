@@ -1,6 +1,6 @@
 import React from 'react';
 
-import Constants from '../constants/constants';
+import { dragStartAction } from '../store/actionCreators';
 
 export default function DragSource(Component) {
   class dragSource extends React.Component {
@@ -75,13 +75,7 @@ export default function DragSource(Component) {
         y = e.clientY;
       }
 
-      this.context.__dragDropStore.dispatch({
-        type: Constants.ACTIONS.DRAG_DROP.DRAG_START,
-        source: this,
-        key: node.key,
-        x,
-        y
-      });
+      this.context.__dragDropStore.dispatch(dragStartAction(this, node.key, x, y));
     }
 
     render() {

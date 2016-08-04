@@ -1,4 +1,5 @@
 jest.unmock('./fixtures/container');
+jest.unmock('../lib/store/actionCreators');
 
 import React from 'react';
 import TestUtils from 'react-addons-test-utils';
