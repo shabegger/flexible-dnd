@@ -1,6 +1,8 @@
 # flexible-dnd
 ### A lightweight React drag-and-drop library
 
+**This library is currently in early beta. Some functionality may not yet be implemented.**
+
 flexible-dnd is a lightweight drag-and-drop library for React components. Some inspiration is drawn from Dan Abramov's [react-dnd](https://github.com/gaearon/react-dnd). The most major departures from the react-dnd approach include:
 
 * No configurable backend or HTML5 drag-and-drop; touch-enabled custom drag-handling only
