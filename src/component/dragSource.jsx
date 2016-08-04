@@ -15,7 +15,7 @@ export default function DragSource(Component) {
         dragKey: null,
         dragDeltaX: null,
         dragDeltaY: null
-      }
+      };
     }
 
     componentDidMount() {
@@ -58,7 +58,7 @@ export default function DragSource(Component) {
         onMouseDown: handler,
         onTouchStart: handler
       });
-      
+
       return React.cloneElement(node, props, node.props.children);
     }
 
@@ -83,10 +83,10 @@ export default function DragSource(Component) {
         y
       });
     }
-    
+
     render() {
       var { isDragging } = this.state,
-          props, dragDelta;
+          props;
 
       props = {
         connectDragSource: this.connect,
@@ -102,7 +102,7 @@ export default function DragSource(Component) {
       return <Component {...props} {...this.props} />;
     }
   }
-  
+
   Object.assign(dragSource, {
     contextTypes: {
       __dragDropStore: React.PropTypes.object.isRequired
@@ -111,4 +111,4 @@ export default function DragSource(Component) {
   });
 
   return dragSource;
-};
+}

@@ -32,11 +32,11 @@ export default function DragDropContext(Component) {
         onTouchEnd: this.dragEnd,
         onTouchMove: this.dragMove
       });
-      
+
       return React.cloneElement(node, props, node.props.children);
     }
 
-    dragCancel(e) {
+    dragCancel() {
       var store = this.store,
           state = store.getState();
 
@@ -47,7 +47,7 @@ export default function DragDropContext(Component) {
       }
     }
 
-    dragEnd(e) {
+    dragEnd() {
       var store = this.store,
           state = store.getState();
 
@@ -81,12 +81,12 @@ export default function DragDropContext(Component) {
         });
       }
     }
-    
+
     render() {
       return <Component {...this.props} connectDragDropContext={this.connect} />;
     }
   }
-  
+
   Object.assign(dragDropContext, {
     childContextTypes: {
       __dragDropStore: React.PropTypes.object.isRequired
@@ -95,4 +95,4 @@ export default function DragDropContext(Component) {
   });
 
   return dragDropContext;
-};
+}
