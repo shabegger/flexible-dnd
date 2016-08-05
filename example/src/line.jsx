@@ -16,7 +16,7 @@ class Line extends React.Component {
 
   componentWillReceiveProps(nextProps) {
     if (this.props.isDragging && !nextProps.isDragging) {
-      if (this.props.dragKey == 'start') {
+      if (this.props.dragKey === 'start') {
         this.setState({
           startX: this.state.startX + this.props.dragDeltaX,
           startY: this.state.startY + this.props.dragDeltaY

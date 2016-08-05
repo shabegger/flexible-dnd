@@ -37,18 +37,38 @@ Apply the `DragSource` composable to any components that will render draggable e
 
 You must handle rendering dragged elements yourself. If a `DragSource` currently has a dragged element, `props.isDragging` will be `true`. If the component contains multiple draggable elements, you can apply the `key` property to those elements, and the value corresponding to the dragged element will be passed down as `props.dragKey`. The drag deltas are available via `props.dragDeltaX` and `props.dragDeltaY`.
 
+One way to handle the end of a drag is to check the current and future value of `props.isDragging` within the `componentWillReceiveProps` method. This is a good spot to update the state of your `DragSource`.
+
 ```
 import React from 'react';
 import { DragSource } from 'flexible-dnd';
 
 class DraggableComponent extends React.Component {
   constructor() {
+    super();
+
     this.state = {
       x1: 20,
       y1: 20,
       x2: 20,
       y2: 60
     };
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (this.props.isDragging && !nextProps.isDragging) {
+      if (this.props.dragKey === 'drag1') {
+        this.setState({
+          x1: this.state.x1 + this.props.dragDeltaX,
+          y1: this.state.y1 + this.props.dragDeltaY
+        });
+      } else {
+        this.setState({
+          x2: this.state.x2 + this.props.dragDeltaX,
+          y2: this.state.y2 + this.props.dragDeltaY
+        });
+      }
+    }
   }
 
   render() {
