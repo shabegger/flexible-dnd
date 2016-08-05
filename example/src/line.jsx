@@ -3,11 +3,30 @@ import React from 'react';
 import { DragSource } from '../../lib/index';
 
 class Line extends React.Component {
+  constructor() {
+    super();
+
+    this.state = {
+      startX: 20,
+      startY: 150,
+      endX: 280,
+      endY: 150
+    };
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (this.props.isDragging && !nextProps.isDragging) {
+      if (this.props.dragKey == 'start') {
+        this.setState({
+          startX: this.state.startX + this.props.dragDeltaX,
+          startY: this.state.startY + this.props.dragDeltaY
+        });
+      }
+    }
+  }
+
   render() {
-    var startX = 20,
-        startY = 150,
-        endX = 280,
-        endY = 150;
+    var { startX, startY, endX, endY } = this.state;
 
     const { connectDragSource } = this.props;
 
