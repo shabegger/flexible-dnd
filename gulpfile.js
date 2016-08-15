@@ -24,7 +24,7 @@ gulp.task('lint', function () {
     .pipe(eslint.format())
     .pipe(eslint.failAfterError());
 });
- 
+
 gulp.task('test', function (callback) {
   exec('npm test', function (err, stdout, stderr) {
     console.log(stdout);

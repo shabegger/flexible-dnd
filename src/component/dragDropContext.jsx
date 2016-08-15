@@ -2,11 +2,18 @@ import React from 'react';
 import { createStore } from 'redux';
 
 import dragDropReducer from '../store/dragDropReducer';
-import { dragCancelAction, dragEndAction, dragMoveAction } from '../store/actionCreators';
+import {
+  dragCancelAction,
+  dragEndAction,
+  dragMoveAction,
+  setDropTargets
+} from '../store/actionCreators';
 
 export default function DragDropContext(Component) {
   class dragDropContext extends React.Component {
     constructor() {
+      var store, dragSource;
+
       super();
 
       this.connect = this.connect.bind(this);
@@ -14,7 +21,27 @@ export default function DragDropContext(Component) {
       this.dragEnd = this.dragEnd.bind(this);
       this.dragMove = this.dragMove.bind(this);
 
-      this.store = createStore(dragDropReducer);
+      this.store = store = createStore(dragDropReducer);
+      this.unsubscribe = store.subscribe(() => {
+        var state = store.getState();
+
+        if (dragSource !== state.dragSource) {
+          dragSource = state.dragSource;
+
+          if (!dragSource) {
+            store.dispatch(setDropTargets([]));
+          } else {
+            store.dispatch(setDropTargets(state.dropTargets
+              .filter((t) => t.config.canDrop.call(t.target, dragSource))));
+          }
+        }
+      });
+
+      dragSource = store.getState().dragSource;
+    }
+
+    componentWillUnmount() {
+      this.unsubscribe();
     }
 
     getChildContext() {
@@ -24,7 +51,13 @@ export default function DragDropContext(Component) {
     }
 
     connect(node) {
-      var props = Object.assign({}, node.props, {
+      var props;
+
+      if (typeof node.type !== 'string') {
+        throw new Error('DragDropContext node must be a ReactDOMComponent');
+      }
+
+      props = Object.assign({}, node.props, {
         onMouseLeave: this.dragCancel,
         onMouseMove: this.dragMove,
         onMouseUp: this.dragEnd,
@@ -47,9 +80,14 @@ export default function DragDropContext(Component) {
 
     dragEnd() {
       var store = this.store,
-          state = store.getState();
+          state = store.getState(),
+          source = state.dragSource,
+          target;
 
-      if (state.dragSource) {
+      if (source) {
+        target = state.dropTarget;
+        target && target.config.drop.call(target.target, source);
+
         store.dispatch(dragEndAction());
       }
     }
@@ -57,6 +95,7 @@ export default function DragDropContext(Component) {
     dragMove(e) {
       var store = this.store,
           state = store.getState(),
+          target = null, key = null,
           x, y,
           touch;
 
@@ -70,7 +109,19 @@ export default function DragDropContext(Component) {
           y = e.clientY;
         }
 
-        store.dispatch(dragMoveAction(x, y));
+        state.currentTargets.forEach((t) => {
+          t.target.targets.forEach((tt) => {
+            let rect = tt.element.getBoundingClientRect();
+
+            if (rect.left < x && rect.right > x &&
+                rect.top < y && rect.bottom > y) {
+              target = t;
+              key = tt.key;
+            }
+          });
+        });
+
+        store.dispatch(dragMoveAction(target, key, x, y));
       }
     }
 

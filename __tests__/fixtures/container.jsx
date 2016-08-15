@@ -29,6 +29,6 @@ export class Container extends React.Component {
       </div>
     );
   }
-};
+}
 
 export let DragDropContextContainer = DragDropContext(Container);

@@ -50,6 +50,10 @@ export default function DragSource(Component) {
     connect(node) {
       var handler, props;
 
+      if (typeof node.type !== 'string') {
+        throw new Error('DragSource node must be a ReactDOMComponent');
+      }
+
       handler = (e) => {
         this.dragStart(node, e);
       };
@@ -93,7 +97,7 @@ export default function DragSource(Component) {
         props.dragKey = this.state.dragKey;
       }
 
-      return <Component {...props} {...this.props} />;
+      return <Component {...this.props} {...props} />;
     }
   }
 

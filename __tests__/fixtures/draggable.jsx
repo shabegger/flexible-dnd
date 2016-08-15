@@ -11,6 +11,6 @@ export class Draggable extends React.Component {
 
     return connectDragSource(<div key="dragTest" />);
   }
-};
+}
 
 export let DragSourceDraggable = DragSource(Draggable);

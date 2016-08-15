@@ -1,3 +1,4 @@
+jest.unmock('./fixtures/component');
 jest.unmock('./fixtures/draggable');
 jest.unmock('../lib/store/actionCreators');
 
@@ -6,6 +7,7 @@ import TestUtils from 'react-addons-test-utils';
 import stubContext from 'react-stub-context';
 import { createStore } from 'redux';
 
+import Component from './fixtures/component';
 import { Draggable, DragSourceDraggable } from './fixtures/draggable';
 
 const Constants = require('../lib/constants/constants.json');
@@ -32,6 +34,26 @@ describe('The DragSource composable', function () {
     expect(draggable.props.connectDragSource).toEqual(jasmine.any(Function));
   });
 
+  it('only accepts a DOM element in "connectDragSource"', function () {
+    var thrown = false;
+
+    try {
+      draggable.props.connectDragSource(<div />);
+    } catch (ex) {
+      thrown = true;
+    }
+
+    expect(thrown).toBe(false);
+
+    try {
+      draggable.props.connectDragSource(<Component />);
+    } catch (ex) {
+      thrown = true;
+    }
+
+    expect(thrown).toBe(true);
+  });
+
   it('provides an (initially false) "isDragging" property', function () {
     expect(draggable.props.isDragging).toBe(false);
   });
@@ -56,7 +78,7 @@ describe('The DragSource composable', function () {
 
   it('does not provide dragging props when it is not the current dragSource', function () {
     spyOn(store, 'getState').and.returnValue({
-      dragSource: <div />,
+      dragSource: TestUtils.renderIntoDocument(<Component />),
       dragKey: 'dragTest',
       start: { x: 100, y: 100 },
       end: { x: 350, y: 250 }
@@ -102,7 +124,7 @@ describe('The DragSource composable', function () {
   it('does not re-render when it is not the current dragSource', function () {
     spyOn(sourceDraggable, 'render').and.callThrough();
     spyOn(store, 'getState').and.returnValue({
-      dragSource: <div />,
+      dragSource: TestUtils.renderIntoDocument(<Component />),
       dragKey: 'dragTest',
       start: { x: 100, y: 100 },
       end: { x: 350, y: 250 }
