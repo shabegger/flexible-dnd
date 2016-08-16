@@ -29,7 +29,10 @@ export default (state = initState, action = {}) => {
   switch (action.type) {
     case Constants.ACTIONS.DRAG_DROP.DRAG_CANCEL:
     case Constants.ACTIONS.DRAG_DROP.DRAG_END:
-      return initState;
+      return {
+        ...initState,
+        dropTargets: state.dropTargets
+      };
     case Constants.ACTIONS.DRAG_DROP.DRAG_MOVE:
       return {
         ...state,

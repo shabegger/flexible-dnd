@@ -28,11 +28,11 @@ export default function DragDropContext(Component) {
         if (dragSource !== state.dragSource) {
           dragSource = state.dragSource;
 
-          if (!dragSource) {
-            store.dispatch(setDropTargets([]));
-          } else {
+          if (dragSource) {
             store.dispatch(setDropTargets(state.dropTargets
-              .filter((t) => t.config.canDrop.call(t.target, dragSource))));
+              .filter((t) => {
+                return t.config.canDrop.call(t.target.component, dragSource, state.dragKey);
+              })));
           }
         }
       });
@@ -82,11 +82,14 @@ export default function DragDropContext(Component) {
       var store = this.store,
           state = store.getState(),
           source = state.dragSource,
-          target;
+          dropTarget;
 
       if (source) {
-        target = state.dropTarget;
-        target && target.config.drop.call(target.target, source);
+        dropTarget = state.dropTarget;
+        if (dropTarget) {
+          dropTarget.config.drop.call(dropTarget.target.component,
+                                      source, state.dragKey, state.dropKey);
+        }
 
         store.dispatch(dragEndAction());
       }

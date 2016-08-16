@@ -63,6 +63,9 @@ describe('The DragDropContext composable', function () {
           target2 = TestUtils.renderIntoDocument(<Component name="target2" />),
           config = jasmine.createSpyObj([ 'canDrop' ]);
 
+    target1.component = TestUtils.findRenderedDOMComponentWithTag(target1, 'div');
+    target2.component = TestUtils.findRenderedDOMComponentWithTag(target2, 'div');
+
     spyOn(store, 'getState').and.returnValue({
       dragSource: source,
       dragKey: 'source',
@@ -79,8 +82,18 @@ describe('The DragDropContext composable', function () {
 
     dispatch();
 
-    expect(config.canDrop).toHaveBeenCalledWith(source);
+    expect(config.canDrop).toHaveBeenCalled();
     expect(config.canDrop.calls.count()).toBe(2);
+
+    expect(config.canDrop.calls.first()).toEqual({
+      object: target1.component,
+      args: [ source, 'source' ]
+    });
+
+    expect(config.canDrop.calls.mostRecent()).toEqual({
+      object: target2.component,
+      args: [ source, 'source' ]
+    });
   });
 
   it('dispatches the set DROP_TARGETS action when the drag source changes', function () {
@@ -110,40 +123,6 @@ describe('The DragDropContext composable', function () {
     expect(store.dispatch).toHaveBeenCalledWith({
       type: Constants.ACTIONS.DRAG_DROP.DROP_TARGETS,
       targets: [ targets[1] ]
-    });
-  });
-
-  it('dispatches the set DROP_TARGETS action with no targets when drag source null', function () {
-    const target1 = TestUtils.renderIntoDocument(<Component name="target1" />),
-          target2 = TestUtils.renderIntoDocument(<Component name="target2" />);
-
-    const targets = [
-      { target: target1, config: { canDrop: () => false }},
-      { target: target2, config: { canDrop: () => true }}
-    ];
-
-    store.dispatch({
-      type: Constants.ACTIONS.DRAG_DROP.DROP_TARGETS,
-      targets: [ targets[1] ]
-    });
-
-    spyOn(store, 'dispatch').and.callThrough();
-    spyOn(store, 'getState').and.returnValue({
-      dragSource: null,
-      dragKey: null,
-      dropTarget: null,
-      dropKey: null,
-      dropTargets: targets,
-      currentTargets: [ targets[1] ],
-      start: { x: 0, y: 0 },
-      end: { x: 0, y: 0 }
-    });
-
-    dispatch();
-
-    expect(store.dispatch).toHaveBeenCalledWith({
-      type: Constants.ACTIONS.DRAG_DROP.DROP_TARGETS,
-      targets: []
     });
   });
 
@@ -226,6 +205,7 @@ describe('The DragDropContext composable', function () {
       div = TestUtils.findRenderedDOMComponentWithClass(container, 'test-container');
       targetDiv = TestUtils.findRenderedDOMComponentWithTag(target, 'div');
 
+      target.component = targetDiv;
       target.targets = [{ element: targetDiv, key: 'target' }];
       config = jasmine.createSpyObj([ 'canDrop', 'drop' ]);
 
@@ -258,13 +238,13 @@ describe('The DragDropContext composable', function () {
       });
     });
 
-    it('calls "config.drop" on drop target with drag source as an argument', function () {
+    it('calls "config.drop" on drop target with arguments on mouse up', function () {
       TestUtils.Simulate.mouseUp(div, {});
 
       expect(config.drop).toHaveBeenCalled();
       expect(config.drop.calls.first()).toEqual({
-        object: target,
-        args: [ source ]
+        object: targetDiv,
+        args: [ source, 'source', 'target' ]
       });
     });
 
@@ -326,6 +306,16 @@ describe('The DragDropContext composable', function () {
 
       expect(store.dispatch).toHaveBeenCalledWith({
         type: Constants.ACTIONS.DRAG_DROP.DRAG_END
+      });
+    });
+
+    it('calls "config.drop" on drop target with arguments on touch end', function () {
+      TestUtils.Simulate.touchEnd(div, {});
+
+      expect(config.drop).toHaveBeenCalled();
+      expect(config.drop.calls.first()).toEqual({
+        object: targetDiv,
+        args: [ source, 'source', 'target' ]
       });
     });
 

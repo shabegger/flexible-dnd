@@ -37,7 +37,7 @@ describe('The dragDropReducer function', function () {
     const beforeState = deepFreeze({
       dragSource: source,
       dragKey: 'source',
-      dropTarget: target1,
+      dropTarget: { target: target1, config: {} },
       dropKey: 'target1',
       dropTargets: [
         { target: target1, config: {} },
@@ -55,13 +55,16 @@ describe('The dragDropReducer function', function () {
     expect(afterState).toEqual(beforeState);
   });
 
-  it('reinitializes state on drag cancel', function () {
+  it('reinitializes state (except drop targets) on drag cancel', function () {
     const beforeState = deepFreeze({
       dragSource: source,
       dragKey: 'source',
-      dropTarget: target1,
+      dropTarget: { target: target1, config: {} },
       dropKey: 'target1',
-      dropTargets: [],
+      dropTargets: [
+        { target: target1, config: {} },
+        { target: target2, config: {} }
+      ],
       currentTargets: [],
       start: { x: 150, y: 200 },
       end: { x: 300, y: 100 }
@@ -76,20 +79,26 @@ describe('The dragDropReducer function', function () {
       dragKey: null,
       dropTarget: null,
       dropKey: null,
-      dropTargets: [],
+      dropTargets: [
+        { target: target1, config: {} },
+        { target: target2, config: {} }
+      ],
       currentTargets: [],
       start: { x: 0, y: 0 },
       end: { x: 0, y: 0 }
     });
   });
 
-  it('reinitializes state on drag end', function () {
+  it('reinitializes state (except drop targets) on drag end', function () {
     const beforeState = deepFreeze({
       dragSource: source,
       dragKey: 'source',
-      dropTarget: target1,
+      dropTarget: { target: target1, config: {} },
       dropKey: 'target1',
-      dropTargets: [],
+      dropTargets: [
+        { target: target1, config: {} },
+        { target: target2, config: {} }
+      ],
       currentTargets: [],
       start: { x: 150, y: 200 },
       end: { x: 300, y: 100 }
@@ -104,7 +113,10 @@ describe('The dragDropReducer function', function () {
       dragKey: null,
       dropTarget: null,
       dropKey: null,
-      dropTargets: [],
+      dropTargets: [
+        { target: target1, config: {} },
+        { target: target2, config: {} }
+      ],
       currentTargets: [],
       start: { x: 0, y: 0 },
       end: { x: 0, y: 0 }
@@ -157,7 +169,7 @@ describe('The dragDropReducer function', function () {
 
     const afterState = dragDropReducer(beforeState, {
       type: Constants.ACTIONS.DRAG_DROP.DRAG_MOVE,
-      target: target2,
+      target: { target: target2, config: {} },
       key: 'target2',
       x: 345,
       y: 985
@@ -166,7 +178,7 @@ describe('The dragDropReducer function', function () {
     expect(afterState).toEqual({
       dragSource: source,
       dragKey: 'source',
-      dropTarget: target2,
+      dropTarget: { target: target2, config: {} },
       dropKey: 'target2',
       dropTargets: [],
       currentTargets: [],

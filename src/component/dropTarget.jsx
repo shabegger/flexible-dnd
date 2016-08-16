@@ -25,7 +25,7 @@ export default function DropTarget(Component, config) {
       store.dispatch(registerDropTarget(this, config));
       this.unsubscribe = store.subscribe(() => {
         var state = store.getState(),
-            isHovering = (this === state.dropTarget);
+            isHovering = !!state.dropTarget && (this === state.dropTarget.target);
 
         if (isHovering) {
           this.setState({
@@ -87,7 +87,7 @@ export default function DropTarget(Component, config) {
 
       this.targets = [];
 
-      return <Component {...this.props} {...props} />;
+      return <Component {...this.props} {...props} ref={(c) => this.component = c} />;
     }
   }
 
